@@ -6,7 +6,7 @@
 1. Android_Release——发布Android应用（Linux Only）
 2. Java_Modular_Jlink_for_Linux——Java模块化Jlink（不支持AutoModules not support ！）
 3. Java_Modular_Jlink_for_Windows——Java模块化Jlink（不支持AutoModules not support ！）
-4. Java-NoModular-Gradle——Java非模块化打包（不支持模块化应用，有自动模块的可以删除`module-info.java`转为非模块化应用后导出）
+4. Java-NonModular-Gradle——Java非模块化打包（不支持模块化应用，有自动模块的可以删除`module-info.java`转为非模块化应用后导出）
 
 ## 发布说明
 
@@ -40,7 +40,7 @@ AAB -> APKS ->安装到手机 ->APK
 
 与Linux类似，只不过windows这里的`Head.bat`要求不能有引号“”。
 
-### Java-NoModular-Gradle
+### Java-NonModular-Gradle
 
 #### 准备
 
