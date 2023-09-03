@@ -4,6 +4,7 @@ gradle-local.properties
 gpg/
 .gradle/
 build/
+build/image/*
 *.class
 *.log
 *.settings.xml
