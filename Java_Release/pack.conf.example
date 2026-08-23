@@ -1,0 +1,29 @@
+# 复制为 pack/pack.conf 并按项目修改。
+# 用法：把 pack/ 拷到 Java 项目根目录，在项目根执行 ./pack/pack.sh
+
+# 项目根目录（默认 pack/ 的上一级；也可写绝对路径）
+# PROJECT_ROOT="../Example/GradleNonModularBuildBinary"
+
+# 应用标识
+APP_NAME="MyApp"
+VENDOR="MyVendor"
+DESCRIPTION="My Java Application"
+
+# 主类与版本号来源（VERSION = "x.y.z" 写在 MAIN_JAVA 里；留空 APP_VERSION 则自动读取）
+MAIN_JAVA="src/main/java/application/Main.java"
+MAIN_CLASS="application.Main"
+# VERSION_OVERRIDE="1.0.0"
+
+# 构建工具：mvn | gradle
+BUILD_TOOL="mvn"
+# 构建产物相对 PROJECT_ROOT 的路径（Maven shade / Gradle jar 输出）
+BUILT_JAR_REL="target/MyApp.jar"
+
+# jpackage / deb
+LINUX_PACKAGE_NAME="myapp"
+LINUX_MENU_GROUP="Utility"
+
+# 额外 JVM 参数（jpackage --java-options），可留空
+# 示例：程序目录作为配置根目录（运行时由 jpackage 展开 $ROOTDIR）
+# JAVA_OPTS_EXTRA='-Dapp.home=$ROOTDIR'
+JAVA_OPTS_EXTRA=''

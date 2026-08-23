@@ -4,9 +4,10 @@
 ## 目录结构
 
 1. Android_Release——发布Android应用（Linux Only）
-2. Java_Modular_Jlink_for_Linux——Java模块化Jlink（不支持AutoModules not support ！）
-3. Java_Modular_Jlink_for_Windows——Java模块化Jlink（不支持AutoModules not support ！）
-4. Java-NonModular-Gradle——Java非模块化打包（不支持模块化应用，有自动模块的可以删除`module-info.java`转为非模块化应用后导出）
+2. Java_Release——Java 应用打包（Maven/Gradle fat JAR + jpackage，推荐）
+3. Java_Modular_Jlink_for_Linux——Java模块化Jlink（不支持AutoModules not support ！）
+4. Java_Modular_Jlink_for_Windows——Java模块化Jlink（不支持AutoModules not support ！）
+5. Java-NonModular-Gradle——Java非模块化打包（不支持模块化应用，有自动模块的可以删除`module-info.java`转为非模块化应用后导出）
 
 ## 发布说明
 
@@ -23,6 +24,18 @@ Bundle-tool：[Google Bundle项目地址](https://github.com/google/bundletool) 
 #### 流程
 
 AAB -> APKS ->安装到手机 ->APK
+
+### Java_Release
+
+#### 准备
+
+源代码、Maven 或 Gradle、JDK 17+（`jpackage` 需要）
+
+将 `Java_Release/pack/` 复制到项目根，配置 `pack/pack.conf`。详见 `Java_Release/README.md`。
+
+#### 流程
+
+构建 fat JAR → jpackage 绿色目录 → 本机安装包（.deb / .dmg / .exe）
 
 ### Java_Modular_Jlink_for_Linux
 
