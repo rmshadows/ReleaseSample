@@ -1,101 +1,110 @@
-# Java 应用打包（`Java_Release/pack/`）
+# 通用 Java 应用打包（jpackage）
 
-基于 [TextSend_Desktop/pack](https://github.com) 的做法：Maven/Gradle 构建 fat JAR，再用 `jpackage` 打绿色目录和本机安装包。
+把**整个本文件夹**拷到任意 **Maven + JDK（带 jpackage）** 项目里即可。文件夹叫 `pack`、`pack2` 都行：脚本把**上一级目录当成项目根**。
 
-需要 **JDK 17+**（带 `jpackage`）和 **Maven 或 Gradle**，都在 PATH 里。产物在项目根目录的 `dist/`。
+不绑死某个应用。换项目只改 **`app.conf`**。
 
-## 接入项目
-
-1. 把 `Java_Release/pack/` 复制到你的 Java 项目根目录（与 `src/`、`build.gradle` 同级）。
-2. 复制 `Java_Release/pack.conf.example` 为 `pack/pack.conf`，按项目修改。
-3. 在主类 Java 文件里写版本号（或在 `pack.conf` 设 `VERSION_OVERRIDE`）：
-
-```java
-public static final String VERSION = "1.0.0";
+```bash
+cp app.conf.example app.conf   # 按项目填写
 ```
 
-4. 在项目根目录执行打包脚本。
+需要：`java`、`mvn` 在 PATH。绿色目录 / 安装包还要 `jpackage`（JDK 自带）。
 
-也可不复制：在 `pack/pack.conf` 里设 `PROJECT_ROOT` 指向目标项目（见 `pack.conf.example`）。
+产物在项目根的 `dist/`。
 
 ## 一键
 
-**Linux / macOS（bash）：**
+**Linux / macOS：**
 
 ```bash
-./pack/pack.sh
+./pack2/pack.sh
 ```
 
-**Windows（PowerShell）：**
+（拷走后若改名为 `pack`，则 `./pack/pack.sh`。）
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\pack\pack.ps1
+**Windows（cmd）：**
+
+```bat
+pack2\pack.bat
 ```
 
-会打出 fat JAR、绿色目录（自带精简 JRE），再按**当前操作系统**打安装包：
+一键会打：可运行 JAR、绿色目录（自带精简 JRE），再按当前系统打安装包。
 
 | 你在哪台机器上跑 | 额外安装包 |
 |------------------|------------|
-| Linux（`pack.sh`） | `.deb`（Debian / Ubuntu） |
-| macOS（`pack.sh`） | `.dmg` |
-| Windows（`pack.ps1`） | `.exe` 安装程序 |
+| Linux | `.deb` |
+| macOS | `.dmg` |
+| Windows（`pack.bat`） | `.exe`（WiX 3） |
 
-**不能交叉编译。** 要哪种包，就在哪种系统上跑一遍。
+**不能交叉编译。** 要哪种包，就在哪种系统上跑。
+
+Windows `.exe` 要 WiX。JDK 24+ 用 WiX 4/5 请跑 `pack-win-wix5.bat`（不要靠 PowerShell 给 `pack-win-choose.bat` 传参，容易把参数丢掉）。
+
+## app.conf
+
+等号两边不要空格。路径相对**项目根**。
+
+| 项 | 说明 |
+|----|------|
+| `APP_NAME` | 必填。程序名，不要空格 |
+| `MAIN_CLASS` | 必填。主类，如 `com.example.Main` |
+| `MAVEN_JAR` | 必填。`mvn package` 打出的 jar，如 `target/myapp.jar` |
+| `VENDOR` / `APP_DESCRIPTION` | 显示用，可空 |
+| `VERSION` | 写死版本。空则看下面两项 |
+| `VERSION_JAVA` | 从该 Java 文件读 `VERSION = "x.y"` |
+| （都空） | 读 `pom.xml` 里 `<parent>` 之后第一条 `<version>` |
+| `LINUX_PKG_NAME` | deb 包名。空则用 `APP_NAME` 小写 |
+| `ICON_PNG` / `ICON_ICO` / `ICON_ICNS` | 可选。没有就用默认 Java 图标 |
+| `JP_MODULES` | `jpackage --add-modules`，Swing 默认那串一般够用 |
+| `JAVA_OPTIONS` | 一条 `--java-options`，默认 UTF-8 |
+| `MENU_GROUP` | Linux 菜单分组，默认 `Utility` |
 
 ## 分项脚本
 
-Linux / macOS 用 `.sh`；Windows 用同名 `.ps1`。
-
-| 文件 | 用途 | 产物 | 在哪打 |
-|------|------|------|--------|
-| `common.sh` / `common.ps1` | 读 `pack.conf`、版本号、路径、检查命令 | 无 | — |
-| `pack-jar.sh` / `pack-jar.ps1` | Maven / Gradle 构建并复制 fat JAR | `dist/<APP_NAME>.jar` | 任意有 JDK+构建工具的系统 |
-| `pack-appimage.sh` / `pack-appimage.ps1` | `jpackage --type app-image` 绿色目录 | Linux/mac：目录 + `.tar.gz`；Windows：`dist\<APP_NAME>\` + `.zip` | 目标系统 |
-| `pack-deb.sh` | Debian 安装包 | `dist/*.deb` | **只能 Linux**（还要 `fakeroot`、`dpkg-deb`） |
-| `pack-mac.sh` | macOS 磁盘镜像 | `dist/*.dmg` | **只能 macOS** |
-| `pack-win.ps1` / `pack-win.sh` | Windows 安装程序 | `dist/*.exe` | **只能 Windows** |
-| `pack.sh` / `pack.ps1` | 上面几项按平台串起来 | 见上 | 见上 |
-
-`pack.sh` / `pack.ps1` 会设 `SKIP_JAR=1`，避免绿色目录 / 安装包再构建一遍。
-
-## 配置项（`pack/pack.conf`）
-
-| 变量 | 说明 |
+| 文件 | 产物 |
 |------|------|
-| `PROJECT_ROOT` | 项目根（默认 `pack/` 上一级） |
-| `APP_NAME` | jpackage 应用名、JAR 文件名 |
-| `VENDOR` / `DESCRIPTION` | jpackage 元数据 |
-| `MAIN_JAVA` / `MAIN_CLASS` | 主类路径与全限定类名 |
-| `VERSION_OVERRIDE` | 可选，覆盖从主类读取的版本号 |
-| `BUILD_TOOL` | `mvn` 或 `gradle` |
-| `BUILT_JAR_REL` | 构建产物相对项目根的路径 |
-| `LINUX_PACKAGE_NAME` | `.deb` 包名 |
-| `JAVA_OPTS_EXTRA` | 额外 `--java-options`（如 `-Dapp.home=$ROOTDIR`） |
+| `pack-jar.sh` / `.bat` | `dist/<APP_NAME>_<版本>.jar` |
+| `pack-appimage.sh` / `.bat` | **不是** Linux `.AppImage`。是 `jpackage --type app-image` 绿色目录 + tar.gz / zip |
+| `pack-deb.sh` | Linux `.deb`（原版 + `.compat.deb` 宽松 Depends） |
+| `pack-mac.sh` | macOS `.dmg` |
+| `pack-win.bat` | Windows `.exe`（WiX 3） |
+| `pack-win-wix5.bat` | Windows `.exe`（WiX 4/5，JDK 24+） |
+| `pack.sh` / `pack.bat` | 按平台串起来 |
 
-## 产物怎么用
+`pack.sh` / `pack.bat` 会设 `SKIP_JAR=1`，避免后面再 Maven 一遍。
 
-- **JAR**：对方要装 Java 17+。`java -jar dist/<APP_NAME>.jar`
-- **绿色目录**：解压即用，不必装系统 Java。Linux：`<APP_NAME>/bin/<APP_NAME>`；Mac：`<APP_NAME>.app`；Windows：`<APP_NAME>\<APP_NAME>.exe`
-- **.deb**：`sudo dpkg -i dist/<linux-package-name>_*.deb`
-- **.dmg / .exe**：本机安装器用。Mac 的 dmg 未签名，可能要右键打开
+同一份绿色包里两个启动器：
 
-## 与其它模板的关系
+| 平台 | 日常 | 调试（终端看日志） |
+|------|------|-------------------|
+| Windows | `<App>\<App>.exe` | `<App>\<App>-console.exe` |
+| Linux | `<App>/bin/<App>`（deb：`/opt/<pkg>/bin/<App>`） | `…/<App>-console` |
+| macOS | `<App>.app` | `<App>.app/Contents/MacOS/<App>-console` |
 
-| 目录 | 适用场景 |
-|------|----------|
-| **Java_Release**（本目录） | 非模块化 / Maven shade / Gradle fat JAR + jpackage，**推荐** |
-| `Java-NonModular-Gradle` | Gradle + beryx runtime 插件一体化 |
-| `Java_Modular_Jlink_for_Linux` / `_Windows` | **模块化**项目，jlink 定制 JRE（不支持自动模块） |
+## Windows WiX
+
+| 脚本 | WiX | JDK |
+|------|-----|-----|
+| `pack.bat` / `pack-win.bat` | 3（`candle.exe`） | 17+ |
+| `pack-win-wix5.bat` | 4/5（`wix.exe`） | 24+ |
+
+WiX 5：
+
+```bat
+dotnet tool install --global wix
+wix extension add -g WixToolset.Util.wixext
+wix extension add -g WixToolset.UI.wixext
+```
+
+缺扩展时 `wix` 常 exit **144**。`.bat` 请保持 CRLF（本目录 `.gitattributes` 已指定）。
 
 ## 还没有的
 
-- **Linux `.AppImage`**（单文件）：与绿色目录不是一回事，未实现
-- **Windows `.msi`**：要 WiX，目前只打 `.exe`
-- **macOS 签名 / 公证**：无开发者证书则不做
-- **rpm / 跨架构**：jpackage 不做
+- Linux 单文件 `.AppImage`
+- Windows `.msi`
+- macOS 签名 / 公证
+- rpm / 跨架构
 
-## 依赖备忘
+## 从本仓库拿走
 
-- 所有脚本：`java`（17+）、`mvn` 或 `gradle`
-- 绿色目录和安装包：`jpackage`（JDK 自带）
-- `.deb`：`fakeroot`、`dpkg-deb`
+整份剪切走即可，不要把本文件夹提交进应用仓库也行。应用仓库里只需留下你改好的这份脚本 + `app.conf`。
